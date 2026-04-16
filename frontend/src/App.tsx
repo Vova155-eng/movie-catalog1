@@ -1,23 +1,27 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-
-import AddMoviePage from './pages/MoviesPage'; 
+import MoviesPage from './pages/MoviesPage';
+import AddMoviePage from './pages/AddMoviePage';
 
 function App() {
   return (
     <Router>
-      <header style={{ background: '#1a1a1a', padding: '1rem', display: 'flex', gap: '20px' }}>
-        <Link to="/" style={{ color: '#646cff' }}>Головна</Link>
-        <Link to="/movies" style={{ color: '#646cff' }}>Список фільмів</Link>
-        <Link to="/add" style={{ color: '#646cff' }}>+ Додати новий</Link>
-      </header>
+      <nav style={{ 
+        padding: '15px 60px', 
+        background: '#1a2634', // Темно-синій колір панелі
+        display: 'flex', 
+        gap: '30px',
+        alignItems: 'center',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }}>
+        <Link to="/movies" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', fontSize: '18px' }}>Список фільмів</Link>
+        <Link to="/add" style={{ color: '#bdc3c7', textDecoration: 'none', fontSize: '18px' }}>+ Додати новий</Link>
+      </nav>
 
-      <main style={{ padding: '20px' }}>
-        <Routes>
-          <Route path="/" element={<h2>Головна сторінка</h2>} />
-          <Route path="/movies" element={<h2>Тут буде список фільмів</h2>} />
-          <Route path="/add" element={<AddMoviePage />} />
-        </Routes>
-      </main>
+      <Routes>
+        <Route path="/movies" element={<MoviesPage />} />
+        <Route path="/add" element={<AddMoviePage />} />
+        <Route path="/" element={<MoviesPage />} />
+      </Routes>
     </Router>
   );
 }

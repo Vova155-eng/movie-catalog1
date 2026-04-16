@@ -1,57 +1,70 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { createMovie } from '../services/movieService';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { getMovies, deleteMovie, type Movie } from '../services/movieService';
 
-// Схема валідації
-const movieSchema = z.object({
-  title: z.string().min(2, 'Назва має бути не менше 2 символів'),
-  genre: z.string().min(3, 'Вкажіть жанр'),
-  rating: z.coerce.number().min(1, 'Мінімум 1').max(10, 'Максимум 10'),
-});
+const MoviesPage = () => {
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
 
-type MovieFormData = z.infer<typeof movieSchema>;
-
-const AddMoviePage = () => { // Назва всередині файлу
-  const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm<MovieFormData>({
-    resolver: zodResolver(movieSchema),
-    defaultValues: { title: '', genre: '', rating: 0 }
-  });
-
-  const onSubmit = async (data: MovieFormData) => {
+  const load = async () => {
     try {
-      await createMovie(data);
-      alert('Фільм успішно додано!');
-      navigate('/movies'); 
-    } catch (error) {
-      console.error('Помилка:', error);
-      alert('Помилка! Перевір чи запущено backend');
-    }
+      const data = await getMovies();
+      setMovies(data);
+    } catch (e) { console.error(e); } 
+    finally { setLoading(false); }
   };
 
+  useEffect(() => { load(); }, []);
+
+  if (loading) return <div style={{ textAlign: 'center', marginTop: '100px', fontSize: '20px' }}>Завантаження...</div>;
+
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <h1 style={{ lineHeight: '1.4', marginBottom: '30px', textAlign: 'center', paddingTop: '20px' }}>
-        Додати новий фільм
+    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+      <h1 style={{ textAlign: 'center', fontSize: '42px', marginBottom: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
+        🎬 Мій Кінокаталог
       </h1>
-      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <input {...register('title')} placeholder="Назва фільму" style={{ padding: '8px' }} />
-        {errors.title && <p style={{ color: 'red', fontSize: '12px' }}>{errors.title.message}</p>}
-
-        <input {...register('genre')} placeholder="Жанр" style={{ padding: '8px' }} />
-        {errors.genre && <p style={{ color: 'red', fontSize: '12px' }}>{errors.genre.message}</p>}
-
-        <input type="number" step="0.1" {...register('rating')} placeholder="Рейтинг" style={{ padding: '8px' }} />
-        {errors.rating && <p style={{ color: 'red', fontSize: '12px' }}>{errors.rating.message}</p>}
-
-        <button type="submit" style={{ padding: '10px', backgroundColor: '#646cff', color: 'white', border: 'none', cursor: 'pointer' }}>
-          Зберегти
-        </button>
-      </form>
+      
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+        gap: '30px' 
+      }}>
+        {movies.map(m => (
+          <div key={m.id} style={{ 
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '15px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.05)', // М'яка тінь
+            textAlign: 'center',
+            border: '1px solid #eee',
+            transition: 'transform 0.3s ease'
+          }}>
+            <h2 style={{ margin: '0 0 10px 0', fontSize: '24px', color: '#2c3e50' }}>{m.title}</h2>
+            <p style={{ color: '#7f8c8d', fontSize: '16px', marginBottom: '15px' }}>{m.genre}</p>
+            
+            <div style={{ fontSize: '22px', marginBottom: '20px', fontWeight: 'bold' }}>
+              <span style={{ color: '#f1c40f' }}>⭐</span> {m.rating} <span style={{ color: '#bdc3c7', fontSize: '16px', fontWeight: 'normal' }}>/ 10</span>
+            </div>
+            
+            <button 
+              onClick={() => m.id && deleteMovie(m.id).then(load)}
+              style={{ 
+                backgroundColor: '#fdf0f0',
+                color: '#e74c3c',
+                border: '1px solid #fadbd8',
+                padding: '8px 25px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px'
+              }}
+            >
+              Видалити
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default AddMoviePage;
+export default MoviesPage;
